@@ -1,21 +1,32 @@
 import React from 'react';
+import type { NavigationProp } from '@react-navigation/native';
+import NoteScreen from '@/screens/NoteScreen';
+import HomeScreen from '@/screens/HomeScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DrawerNavigator from './DrawerNavigator';
-import NoteScreen from '@/screens/NoteScreen';
 
-const Stack = createNativeStackNavigator();
+export type ScreenNames = ["main", "note"];
+
+export type RootStackParamList = {
+    main: undefined;
+    note: { isNew: boolean };
+};
+
+export type StackNavigation = NavigationProp<RootStackParamList>;
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
     return (
         <Stack.Navigator>
             <Stack.Screen
-                name="Main"
+                name="main"
                 component={DrawerNavigator}
                 options={{ headerShown: false }}
             />
 
             <Stack.Screen
-                name="Note"
+                name="note"
                 component={NoteScreen}
                 options={({ route }) => ({
                     title: route.params?.isNew ? "New Note" : "Edit Note",

@@ -1,10 +1,10 @@
+import { StatusBar } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ThemeProvider } from "@/context/ThemeContext";
-import { DatabaseProvider } from "@/context/DatabaseContext";
-import { NavigationContainer } from "@react-navigation/native";
-import { StatusBar } from "react-native";
-import RootNavigator from "@/navigators/RootNavigator";
+import { ThemeProvider } from "./src/context/ThemeContext";
+import { DatabaseProvider } from "./src/context/DatabaseContext";
+import RootNavigator from "./src/navigators/RootNavigator";
 
 export default function App() {
   return (

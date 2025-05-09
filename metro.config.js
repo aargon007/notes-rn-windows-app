@@ -1,40 +1,45 @@
-const path = require('path');
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+
 const fs = require('fs');
+const path = require('path');
 const exclusionList = require('metro-config/src/defaults/exclusionList');
-const {getDefaultConfig} = require('@react-native/metro-config');
-const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
 
-const rnwPath = fs.realpathSync(path.resolve(require.resolve('react-native-windows/package.json'), '..'));
+const rnwPath = fs.realpathSync(
+  path.resolve(require.resolve('react-native-windows/package.json'), '..'),
+);
 
-// Step 1: Start with base config and wrap it BEFORE customizing
-const baseConfig = getDefaultConfig(__dirname);
-const reanimatedConfig = wrapWithReanimatedMetroConfig(baseConfig);
+//
 
-// Step 2: Merge your customizations into the already wrapped config
-reanimatedConfig.resolver = {
-    ...reanimatedConfig.resolver,
+/**
+ * Metro configuration
+ * https://facebook.github.io/metro/docs/configuration
+ *
+ * @type {import('metro-config').MetroConfig}
+ */
+
+const config = {
+  //
+  resolver: {
     blockList: exclusionList([
-        new RegExp(`${path.resolve(__dirname, 'windows').replace(/[/\\]/g, '/')}.*`),
-        new RegExp(`${rnwPath}/build/.*`),
-        new RegExp(`${rnwPath}/target/.*`),
-        /.*\.ProjectImports\.zip/,
+      // This stops "npx @react-native-community/cli run-windows" from causing the metro server to crash if its already running
+      new RegExp(
+        `${path.resolve(__dirname, 'windows').replace(/[/\\]/g, '/')}.*`,
+      ),
+      // This prevents "npx @react-native-community/cli run-windows" from hitting: EBUSY: resource busy or locked, open msbuild.ProjectImports.zip or other files produced by msbuild
+      new RegExp(`${rnwPath}/build/.*`),
+      new RegExp(`${rnwPath}/target/.*`),
+      /.*\.ProjectImports\.zip/,
     ]),
-    extraNodeModules: {
-        ...(reanimatedConfig.resolver.extraNodeModules || {}),
-        '@': path.resolve(__dirname, 'src'),
-    },
-};
-
-reanimatedConfig.watchFolders = [...(reanimatedConfig.watchFolders || []), path.resolve(__dirname, 'src')];
-
-reanimatedConfig.transformer = {
-    ...reanimatedConfig.transformer,
+    //
+  },
+  transformer: {
     getTransformOptions: async () => ({
-        transform: {
-            experimentalImportSupport: false,
-            inlineRequires: true,
-        },
+      transform: {
+        experimentalImportSupport: false,
+        inlineRequires: true,
+      },
     }),
+  },
 };
 
-module.exports = reanimatedConfig;
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);

@@ -1,10 +1,9 @@
+import { createDrawerNavigator } from "@react-navigation/drawer"
 import FavoritesScreen from "@/screens/FavoritesScreen";
 import HomeScreen from "@/screens/HomeScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
-import { createDrawerNavigator } from "@react-navigation/drawer"
 import Icon from "react-native-vector-icons/Ionicons"
 
-// For Windows, we'll use a drawer navigation instead of tabs for a more desktop-like experience
 const Drawer = createDrawerNavigator();
 
 function DrawerNavigator() {

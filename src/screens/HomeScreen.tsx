@@ -1,133 +1,52 @@
 import { useState, useCallback } from "react"
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    FlatList,
-    TextInput,
-    Animated,
-    KeyboardAvoidingView,
-    Platform,
-    useWindowDimensions,
-} from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, SafeAreaView } from "react-native"
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
 import Icon from "react-native-vector-icons/Ionicons"
 import { useDatabase } from "../context/DatabaseContext"
 import { useTheme } from "../context/ThemeContext"
-import { SafeAreaView } from "react-native-safe-area-context"
+import { fetchNotes } from "@/db/notes.service"
+import NoteCard from "@/components/home/NoteCard"
+import { type StackNavigation } from "@/navigators/RootNavigator"
+import { type TNote } from "@/types/note"
 
 const HomeScreen = () => {
-    const [notes, setNotes] = useState([])
-    const [searchQuery, setSearchQuery] = useState("")
-    const navigation = useNavigation()
-    const { db, initialized } = useDatabase()
-    const { theme, colors } = useTheme()
-    const dimensions = useWindowDimensions()
-
+    const [notes, setNotes] = useState<TNote[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const { navigate } = useNavigation<StackNavigation>();
+    const { db, initialized } = useDatabase();
+    const { theme, colors } = useTheme();
     // Responsive layout for Windows
-    const isWideScreen = dimensions.width > 800
+    const [isWideScreen, setIsWideScreen] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
             if (initialized) {
-                fetchNotes()
+                fetchNotes(db)
             }
             return () => { }
         }, [initialized]),
-    )
+    );
 
-    const fetchNotes = () => {
-        db.transaction((tx) => {
-            tx.executeSql(
-                "SELECT * FROM notes ORDER BY updated_at DESC;",
-                [],
-                (_, { rows }) => {
-                    setNotes(rows._array)
-                },
-                (_, error) => {
-                    console.error("Error fetching notes:", error)
-                    return false
-                },
-            )
-        })
-    }
-
-    const filteredNotes = notes?.filter(
-        (note) =>
-            note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            note.content.toLowerCase().includes(searchQuery.toLowerCase()),
-    ) || []
-
-    const deleteNote = (id) => {
-        db.transaction((tx) => {
-            tx.executeSql(
-                "DELETE FROM notes WHERE id = ?;",
-                [id],
-                (_, result) => {
-                    fetchNotes()
-                },
-                (_, error) => {
-                    console.error("Error deleting note:", error)
-                    return false
-                },
-            )
-        })
-    }
-
-    const toggleFavorite = (id, currentValue) => {
-        const newValue = currentValue ? 0 : 1
-
-        db.transaction((tx) => {
-            tx.executeSql(
-                "UPDATE notes SET is_favorite = ? WHERE id = ?;",
-                [newValue, id],
-                (_, result) => {
-                    fetchNotes()
-                },
-                (_, error) => {
-                    console.error("Error updating favorite status:", error)
-                    return false
-                },
-            )
-        })
-    }
-
-    const renderItem = ({ item }) => {
-        const formattedDate = item.updated_at
-
-        return (
-                <TouchableOpacity
-                    style={[styles.noteItem, { backgroundColor: colors.card }, isWideScreen && styles.noteItemWide]}
-                    onPress={() => navigation.navigate("note", { noteId: item.id })}
-                >
-                    <View style={styles.noteContent}>
-                        <Text style={[styles.noteTitle, { color: colors.text }]} numberOfLines={1}>
-                            {item.title || "Untitled Note"}
-                        </Text>
-                        <Text style={[styles.notePreview, { color: colors.secondaryText }]} numberOfLines={2}>
-                            {item.content}
-                        </Text>
-                        <View style={styles.noteFooter}>
-                            <Text style={[styles.noteDate, { color: colors.tertiaryText }]}>{formattedDate}</Text>
-                            {item.is_favorite ? <Icon name="star" size={14} color="#FFD700" /> : null}
-                        </View>
-                    </View>
-                </TouchableOpacity>
-        )
-    }
+    const filteredNotes = notes?.filter((note) =>
+        note?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note?.content.toLowerCase().includes(searchQuery.toLowerCase()),
+    ) || [];
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <KeyboardAvoidingView behavior={Platform.OS === "windows" ? undefined : "padding"} style={{ flex: 1 }}>
                 <View style={styles.header}>
                     <View style={styles.searchContainer}>
-                        <Icon name="search" size={20} color={colors.secondaryText} style={styles.searchIcon} />
+                        <Icon
+                            name="search"
+                            size={20}
+                            color={colors.secondaryText}
+                            style={styles.searchIcon}
+                        />
                         <TextInput
                             style={[
                                 styles.searchInput,
-                                { backgroundColor: colors.inputBackground, color: colors.text },
-                                isWideScreen && styles.searchInputWide,
+                                { color: colors.text }
                             ]}
                             placeholder="Search notes..."
                             placeholderTextColor={colors.secondaryText}
@@ -140,7 +59,7 @@ const HomeScreen = () => {
                 {filteredNotes.length > 0 ? (
                     <FlatList
                         data={filteredNotes}
-                        renderItem={renderItem}
+                        renderItem={NoteCard}
                         keyExtractor={(item) => item.id.toString()}
                         contentContainerStyle={[styles.listContainer, isWideScreen && styles.listContainerWide]}
                         showsVerticalScrollIndicator={true}
@@ -149,7 +68,11 @@ const HomeScreen = () => {
                     />
                 ) : (
                     <View style={styles.emptyContainer}>
-                        <Icon name="document-text-outline" size={64} color={colors.secondaryText} />
+                        <Icon
+                            name="document-text-outline"
+                            size={64}
+                            color={colors.secondaryText}
+                        />
                         <Text style={[styles.emptyText, { color: colors.secondaryText }]}>
                             {searchQuery ? "No matching notes found" : "No notes yet"}
                         </Text>
@@ -161,14 +84,14 @@ const HomeScreen = () => {
 
                 <TouchableOpacity
                     style={[styles.fab, { backgroundColor: colors.primary }]}
-                    onPress={() => navigation.navigate("note", { isNew: true })}
+                    onPress={() => navigate("Note", { isNew: true })}
                 >
-                    <Icon name="add" size={24} color="white" />
+                    <Icon name="add-sharp" size={24} color="white" />
                 </TouchableOpacity>
             </KeyboardAvoidingView>
         </SafeAreaView>
     )
-}
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -191,9 +114,12 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         height: 40,
+        paddingVertical: 8,
         borderRadius: 10,
         paddingHorizontal: 36,
         fontSize: 16,
+        borderWidth: 1,
+        borderColor: "#ccc",
     },
     searchInputWide: {
         maxWidth: 600,
@@ -204,41 +130,6 @@ const styles = StyleSheet.create({
     },
     listContainerWide: {
         alignItems: "flex-start",
-    },
-    noteItem: {
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-        width: "100%",
-    },
-    noteItemWide: {
-        width: "48%",
-        marginHorizontal: "1%",
-    },
-    noteContent: {
-        flex: 1,
-    },
-    noteTitle: {
-        fontSize: 18,
-        fontWeight: "600",
-        marginBottom: 5,
-    },
-    notePreview: {
-        fontSize: 14,
-        marginBottom: 10,
-    },
-    noteFooter: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    noteDate: {
-        fontSize: 12,
     },
     emptyContainer: {
         flex: 1,

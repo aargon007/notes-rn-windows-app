@@ -1,14 +1,14 @@
 import React from 'react';
 import type { NavigationProp } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import NoteScreen from '@/screens/NoteScreen';
 import DrawerNavigator from './DrawerNavigator';
-import { createStackNavigator } from '@react-navigation/stack';
 
 export type ScreenNames = ["Main", "Note"];
 
 export type RootStackParamList = {
     Main: undefined;
-    Note: { isNew: boolean };
+    Note: { isNew: boolean, noteId?: number };
 };
 
 export type StackNavigation = NavigationProp<RootStackParamList>;

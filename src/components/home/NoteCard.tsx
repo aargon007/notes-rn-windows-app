@@ -1,12 +1,10 @@
 import React from 'react';
-import { useTheme } from '@/context/ThemeContext';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from "react-native-vector-icons/Ionicons"
 import type { TNote } from '@/types/note';
+import BookmarkIcon from '@/icons/BookmarkIcon';
 
-const NoteCard = ({ item, isWideScreen }: { item: TNote; isWideScreen?: boolean }) => {
-    const formattedDate = item.updated_at;
-    const { colors } = useTheme();
+const NoteCard = ({ item, isWideScreen, colors }: { item: TNote; isWideScreen?: boolean; colors: any }) => {
+    const formattedDate = item?.updated_at;
 
     return (
         <TouchableOpacity
@@ -15,14 +13,14 @@ const NoteCard = ({ item, isWideScreen }: { item: TNote; isWideScreen?: boolean 
         >
             <View style={styles.noteContent}>
                 <Text style={[styles.noteTitle, { color: colors.text }]} numberOfLines={1}>
-                    {item.title || "Untitled Note"}
+                    {item?.title || "Untitled Note"}
                 </Text>
                 <Text style={[styles.notePreview, { color: colors.secondaryText }]} numberOfLines={2}>
-                    {item.content}
+                    {item?.content}
                 </Text>
                 <View style={styles.noteFooter}>
                     <Text style={[styles.noteDate, { color: colors.tertiaryText }]}>{formattedDate}</Text>
-                    {item.is_favorite ? <Icon name="star" size={14} color="#FFD700" /> : null}
+                    {item.is_favorite ? <BookmarkIcon/> : null}
                 </View>
             </View>
         </TouchableOpacity>

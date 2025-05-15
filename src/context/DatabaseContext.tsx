@@ -1,70 +1,75 @@
-import { createContext, useContext, useState, useEffect } from "react"
-import SQLite, { type SQLiteDatabase } from "react-native-sqlite-storage"
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import SQLite, { type SQLiteDatabase } from "react-native-sqlite-storage";
 
-// Enable promise-based SQLite
-SQLite.enablePromise(true)
+// Enable SQLite promise API
+SQLite.enablePromise(true);
+
+// Define context type
+interface DatabaseContextType {
+    db: SQLiteDatabase | null;
+    initialized: boolean;
+}
 
 // Create context
-const DatabaseContext = createContext<any>(null);
+const DatabaseContext = createContext<DatabaseContextType>({
+    db: null,
+    initialized: false,
+});
 
-// Custom hook to use the database context
-export const useDatabase = () => useContext(DatabaseContext)
+// Hook to use context
+export const useDatabase = () => useContext(DatabaseContext);
 
 // Provider component
-export const DatabaseProvider = ({ children }: { children: React.ReactNode }) => {
+export const DatabaseProvider = ({ children }: { children: ReactNode }) => {
     const [db, setDb] = useState<SQLiteDatabase | null>(null);
-    const [initialized, setInitialized] = useState(false)
+    const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
+
         const initDatabase = async () => {
             try {
-                // Open the database
                 const database = await SQLite.openDatabase({
                     name: "notes.db",
                     location: "default",
-                })
+                });
 
-                setDb(database)
-
-                // Initialize the database schema
-                await database.executeSql(
-                    `CREATE TABLE IF NOT EXISTS notes (
+                await database.executeSql(`
+                    CREATE TABLE IF NOT EXISTS notes (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         title TEXT,
                         content TEXT NOT NULL,
                         is_favorite INTEGER DEFAULT 0,
                         created_at TEXT,
                         updated_at TEXT
-                    );`,
-                )
+                    );
+                `);
 
-                console.log("Database and tables initialized successfully")
-                setInitialized(true)
+                if (isMounted) {
+                    setDb(database);
+                    setInitialized(true);
+                    console.log("Database initialized ✅");
+                }
             } catch (error) {
-                console.error("Error initializing database:", error)
+                console.error("Failed to initialize DB ❌", error);
             }
-        }
+        };
 
-        initDatabase()
+        initDatabase();
 
         return () => {
-            // Close the database when the component unmounts
-            if (db) {
-                db.close()
-                    .then(() => console.log("Database closed"))
-                    .catch((error) => console.error("Error closing database:", error))
-            }
-        }
-    }, [])
-
-    const value = {
-        db,
-        initialized,
-    }
+            isMounted = false;
+            db?.close()
+                .then(() => console.log("Database closed 🔒"))
+                .catch((err) => console.error("Error closing DB:", err));
+        };
+    }, []);
 
     return (
-        <DatabaseContext.Provider value={value}>
+        <DatabaseContext.Provider value={{ db, initialized }}>
             {children}
         </DatabaseContext.Provider>
-    )
-}
+    );
+};
+
+export default DatabaseProvider

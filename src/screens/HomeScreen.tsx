@@ -1,48 +1,40 @@
-import { useState, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, SafeAreaView } from "react-native"
-import { useNavigation, useFocusEffect } from "@react-navigation/native"
-import Icon from "react-native-vector-icons/Ionicons"
+import { useNavigation } from "@react-navigation/native"
 import { useDatabase } from "../context/DatabaseContext"
 import { useTheme } from "../context/ThemeContext"
 import { fetchNotes } from "@/db/notes.service"
 import NoteCard from "@/components/home/NoteCard"
 import { type StackNavigation } from "@/navigators/RootNavigator"
 import { type TNote } from "@/types/note"
+import SearchIcon from "@/icons/SearchIcon"
+import PlusIcon from "@/icons/PlusIcon"
+import DocumentIcon from "@/icons/DocumentIcon"
 
 const HomeScreen = () => {
     const [notes, setNotes] = useState<TNote[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const { navigate } = useNavigation<StackNavigation>();
     const { db, initialized } = useDatabase();
-    const { theme, colors } = useTheme();
+    const { colors } = useTheme();
     // Responsive layout for Windows
     const [isWideScreen, setIsWideScreen] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            if (initialized) {
-                fetchNotes(db)
-            }
-            return () => { }
-        }, [initialized]),
-    );
-
-    const filteredNotes = notes?.filter((note) =>
-        note?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note?.content.toLowerCase().includes(searchQuery.toLowerCase()),
-    ) || [];
+    useEffect(() => {
+        fetchNotes(db!, setNotes)
+    }, [initialized]);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <KeyboardAvoidingView behavior={Platform.OS === "windows" ? undefined : "padding"} style={{ flex: 1 }}>
                 <View style={styles.header}>
                     <View style={styles.searchContainer}>
-                        <Icon
-                            name="search"
-                            size={20}
-                            color={colors.secondaryText}
-                            style={styles.searchIcon}
-                        />
+                        <View style={styles.searchIcon}>
+                            <SearchIcon
+                                color={colors.secondaryText}
+                            />
+                        </View>
+
                         <TextInput
                             style={[
                                 styles.searchInput,
@@ -56,37 +48,35 @@ const HomeScreen = () => {
                     </View>
                 </View>
 
-                {filteredNotes.length > 0 ? (
-                    <FlatList
-                        data={filteredNotes}
-                        renderItem={NoteCard}
-                        keyExtractor={(item) => item.id.toString()}
-                        contentContainerStyle={[styles.listContainer, isWideScreen && styles.listContainerWide]}
-                        showsVerticalScrollIndicator={true}
-                        numColumns={isWideScreen ? 2 : 1}
-                        key={isWideScreen ? "grid" : "list"}
-                    />
-                ) : (
-                    <View style={styles.emptyContainer}>
-                        <Icon
-                            name="document-text-outline"
-                            size={64}
-                            color={colors.secondaryText}
-                        />
-                        <Text style={[styles.emptyText, { color: colors.secondaryText }]}>
-                            {searchQuery ? "No matching notes found" : "No notes yet"}
-                        </Text>
-                        <Text style={[styles.emptySubtext, { color: colors.tertiaryText }]}>
-                            {searchQuery ? "Try a different search term" : "Create a new note to get started"}
-                        </Text>
-                    </View>
-                )}
+
+                <FlatList
+                    data={notes}
+                    renderItem={({ item }) => (
+                        <NoteCard colors={colors} isWideScreen={isWideScreen} item={item} />
+                    )}
+                    keyExtractor={(item, index) => item?.id?.toString() || `note-${index}`}
+                    contentContainerStyle={[styles.listContainer, isWideScreen && styles.listContainerWide]}
+                    showsVerticalScrollIndicator={true}
+                    key="grid"
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <DocumentIcon color={colors.secondaryText} />
+                            <Text style={[styles.emptyText, { color: colors.secondaryText }]}>
+                                {searchQuery ? "No matching notes found" : "No notes yet"}
+                            </Text>
+                            <Text style={[styles.emptySubtext, { color: colors.tertiaryText }]}>
+                                {searchQuery ? "Try a different search term" : "Create a new note to get started"}
+                            </Text>
+                        </View>
+                    }
+                />
 
                 <TouchableOpacity
                     style={[styles.fab, { backgroundColor: colors.primary }]}
                     onPress={() => navigate("Note", { isNew: true })}
+                    activeOpacity={0.5}
                 >
-                    <Icon name="add-sharp" size={24} color="white" />
+                    <PlusIcon color="#FFFFFF" />
                 </TouchableOpacity>
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -105,11 +95,12 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 10,
+        position: "relative"
     },
     searchIcon: {
         position: "absolute",
-        zIndex: 1,
         left: 10,
+        zIndex: 1,
     },
     searchInput: {
         flex: 1,

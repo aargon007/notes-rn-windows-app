@@ -1,21 +1,30 @@
-import type { SQLiteDatabase } from "react-native-sqlite-storage"
+import type { TNote } from "@/types/note";
+import type { SQLiteDatabase } from "react-native-sqlite-storage";
 
-export const fetchNotes = (db: SQLiteDatabase) => {
-    db.transaction((tx) => {
-        tx.executeSql(
-            "SELECT * FROM notes ORDER BY updated_at DESC;",
-            [],
-            (_, { rows }) => {
-                // setNotes(rows._array)
-                return rows
-            },
-            (_, error) => {
-                console.error("Error fetching notes:", error)
-                return false
-            },
-        )
-    })
-}
+export const fetchNotes = (
+    db: SQLiteDatabase,
+    callback?: (notes: any[]) => void
+): Promise<any[]> => {
+    return new Promise((resolve, reject) => {
+        db.transaction((tx) => {
+            tx.executeSql(
+                "SELECT * FROM notes ORDER BY id DESC;",
+                [],
+                (_, results) => {
+                    const notes = results.rows.raw();
+                    callback?.(notes); // call only if provided
+                    resolve(notes);
+                },
+                (tx, error) => {
+                    console.error("Error fetching notes", error);
+                    reject(error);
+                    return true;
+                }
+            );
+        });
+    });
+};
+
 
 export const deleteNote = (db: SQLiteDatabase, id: number) => {
     db.transaction((tx) => {

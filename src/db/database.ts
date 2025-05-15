@@ -1,8 +1,9 @@
-import SQLite, { type SQLiteDatabase } from "react-native-sqlite-storage"
-// Enable promise-based SQLite
-SQLite.enablePromise(true);
+import SQLite from 'react-native-sqlite-storage';
 
-export const db = await SQLite.openDatabase({
-    name: "notes.db",
-    location: "default",
-})
+const db = SQLite.openDatabase(
+    { name: 'notes.db', location: 'default' },
+    () => console.log('Database opened'),
+    error => console.log('Error opening database', error)
+);
+
+export default db;

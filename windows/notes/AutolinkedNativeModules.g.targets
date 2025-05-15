@@ -10,5 +10,9 @@
     <ProjectReference Include="$(ProjectDir)..\..\node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\SQLitePlugin.vcxproj">
       <Project>{a09b9a47-e2b9-4294-9746-ac55213fc642}</Project>
     </ProjectReference>
+    <!-- Projects from react-native-svg -->
+    <ProjectReference Include="$(ProjectDir)..\..\node_modules\react-native-svg\windows\RNSVG\RNSVG.vcxproj">
+      <Project>{7acf84ec-efba-4043-8e14-40b159508902}</Project>
+    </ProjectReference>
   </ItemGroup>
 </Project>

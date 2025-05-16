@@ -8,8 +8,29 @@ const htmlContent = `
       #editor { height: 88%; }
       body, html { height: 100%; margin: 0; padding: 0; }
       .ql-editor { font-size: 18px; }
+        /* Scrollbar customization */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f0f0f0;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #bbb;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #999;
+      }
+
+      /* Firefox scrollbar support */
+      body {
+        scrollbar-width: thin;
+        scrollbar-color: #bbb #f0f0f0;
+      }
     </style>
   </head>
+
   <body>
     <div id="toolbar">
       <!-- Quill Toolbar Options -->

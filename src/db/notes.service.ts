@@ -59,3 +59,13 @@ export const toggleFavorite = (db: SQLiteDatabase, id: number, currentValue: boo
         )
     })
 }
+
+// import SQLite from 'react-native-sqlite-storage';
+
+// const db = SQLite.openDatabase(
+//     { name: 'users.db', location: 'default' },
+//     () => console.log('Database opened'),
+//     error => console.log('Error opening database', error)
+// );
+
+// export default db;

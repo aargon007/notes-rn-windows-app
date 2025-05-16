@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, SafeAreaView } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, TextInput,  SafeAreaView } from "react-native"
+import { VirtualizedList } from "react-native-windows"
 import { useNavigation } from "@react-navigation/native"
 import { useDatabase } from "../context/DatabaseContext"
 import { useTheme } from "../context/ThemeContext"
@@ -24,9 +25,11 @@ const HomeScreen = () => {
         fetchNotes(db!, setNotes)
     }, [initialized]);
 
+    const getItem = (data: TNote[], index: number): TNote => data[index];
+    const getItemCount = (data: TNote[]) => data?.length;
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <KeyboardAvoidingView behavior={Platform.OS === "windows" ? undefined : "padding"} style={{ flex: 1 }}>
                 <View style={styles.header}>
                     <View style={styles.searchContainer}>
                         <View style={styles.searchIcon}>
@@ -49,8 +52,10 @@ const HomeScreen = () => {
                 </View>
 
 
-                <FlatList
+                <VirtualizedList
                     data={notes}
+                    getItemCount={getItemCount}
+                    getItem={notes.length > 0 ? getItem : undefined}
                     renderItem={({ item }) => (
                         <NoteCard colors={colors} isWideScreen={isWideScreen} item={item} />
                     )}
@@ -73,12 +78,11 @@ const HomeScreen = () => {
 
                 <TouchableOpacity
                     style={[styles.fab, { backgroundColor: colors.primary }]}
-                    onPress={() => navigate("Note", { isNew: true })}
+                    onPress={() => navigate("AddNote")}
                     activeOpacity={0.5}
                 >
                     <PlusIcon color="#FFFFFF" />
                 </TouchableOpacity>
-            </KeyboardAvoidingView>
         </SafeAreaView>
     )
 };

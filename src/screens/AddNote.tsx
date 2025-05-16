@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react"
-import { View, TextInput, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, useWindowDimensions, Text, } from "react-native"
+import { View, TextInput, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, useWindowDimensions, Text, SafeAreaView, } from "react-native"
 import { type RootStackParamList, type StackNavigation } from "@/navigators/RootNavigator"
-import { SafeAreaView } from "react-native-safe-area-context"
 import { type RouteProp } from "@react-navigation/native"
 import { useDatabase } from "../context/DatabaseContext"
 import { useTheme } from "../context/ThemeContext"
+import BackIcon from "@/icons/BackIcon"
 
-const NoteScreen = ({ navigation, route }: { navigation: StackNavigation, route: RouteProp<RootStackParamList, "Note"> }) => {
+const AddNote = ({ navigation, route }: { navigation: StackNavigation, route: RouteProp<RootStackParamList, "AddNote"> }) => {
     const [title, setTitle] = useState("")
     const [content, setContent] = useState("")
     const [isFavorite, setIsFavorite] = useState(false)
@@ -17,26 +17,6 @@ const NoteScreen = ({ navigation, route }: { navigation: StackNavigation, route:
 
     // Responsive layout for Windows
     const isWideScreen = dimensions.width > 800
-
-    const { noteId, isNew } = route.params || {}
-
-    useEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <View style={styles.headerButtons}>
-                    <TouchableOpacity
-                        style={[styles.headerButton, {
-                            backgroundColor: colors.primary
-                        }]}
-                        activeOpacity={0.5}
-                        onPress={saveNote}
-                    >
-                        <Text style={styles.headerButtonText}>Save</Text>
-                    </TouchableOpacity>
-                </View>
-            ),
-        })
-    }, [title, content, isFavorite, colors.primary]);
 
     const saveNote = () => {
         const now = new Date().toISOString();
@@ -59,7 +39,35 @@ const NoteScreen = ({ navigation, route }: { navigation: StackNavigation, route:
     };
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["bottom"]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={styles.headerButtons}>
+                <TouchableOpacity
+                    style={[{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        columnGap: 10
+                    }]}
+                    activeOpacity={0.5}
+                    onPress={() => navigation.goBack()}
+                >
+                    <BackIcon />
+                    <Text style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
+                        Home
+                    </Text>
+                </TouchableOpacity>
+
+                <Text style= {{ color: colors.text }}>New Note</Text>
+
+                <TouchableOpacity
+                    style={[styles.headerButton, {
+                        backgroundColor: colors.primary
+                    }]}
+                    activeOpacity={0.5}
+                    onPress={saveNote}
+                >
+                    <Text style={styles.headerButtonText}>Save</Text>
+                </TouchableOpacity>
+            </View>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "windows" ? undefined : "padding"}
                 style={styles.keyboardAvoid}
@@ -89,7 +97,6 @@ const NoteScreen = ({ navigation, route }: { navigation: StackNavigation, route:
                             onChangeText={setContent}
                             multiline
                             textAlignVertical="top"
-                            autoFocus={isNew}
                         />
                     </View>
                 </ScrollView>
@@ -142,9 +149,12 @@ const styles = StyleSheet.create({
     },
     headerButtons: {
         flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        paddingVertical: 10
     },
     headerButton: {
-        marginRight: 15,
         backgroundColor: "blue",
         paddingVertical: 8,
         paddingHorizontal: 20,
@@ -157,4 +167,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default NoteScreen
+export default AddNote

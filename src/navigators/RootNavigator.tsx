@@ -1,14 +1,14 @@
 import React from 'react';
 import type { NavigationProp } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import NoteScreen from '@/screens/NoteScreen';
-import DrawerNavigator from './DrawerNavigator';
+import NoteScreen from '@/screens/AddNote';
+import HomeScreen from '@/screens/HomeScreen';
 
-export type ScreenNames = ["Main", "Note"];
+export type ScreenNames = ["Home", "AddNote"];
 
 export type RootStackParamList = {
-    Main: undefined;
-    Note: { isNew: boolean, noteId?: number };
+    Home: undefined;
+    AddNote: undefined
 };
 
 export type StackNavigation = NavigationProp<RootStackParamList>;
@@ -16,25 +16,19 @@ export type StackNavigation = NavigationProp<RootStackParamList>;
 const Stack = createStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
-    
+
     return (
         <Stack.Navigator>
             <Stack.Screen
-                name="Main"
-                component={DrawerNavigator}
+                name="Home"
+                component={HomeScreen}
                 options={{ headerShown: false }}
             />
 
             <Stack.Screen
-                name="Note"
+                name="AddNote"
                 component={NoteScreen}
-                options={({ route }) => ({
-                    title: route.params?.isNew ? "New Note" : "Edit Note",
-                    headerShadowVisible: false,
-                    headerStyle: {
-                        backgroundColor: "#F9F9FB",
-                    },
-                })}
+                options={{ headerShown: false }}
             />
         </Stack.Navigator>
     );

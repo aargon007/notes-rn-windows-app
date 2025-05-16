@@ -2,9 +2,13 @@
 
 A sleek, feature-rich React Native Notes application powered by SQLite, WebView, and a Quill-style rich text editor. Built with performance and cross-platform compatibility in mind, including support for Android, iOS, and Windows.
 
-🎬 [Watch Demo Video](./Demo.mp4)
+<p align="center">
+  <video width="480" controls>
+    <source src="./Demo.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</p>
 
----
 
 ## 🚀 Features
 

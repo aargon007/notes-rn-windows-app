@@ -1,48 +1,66 @@
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from 'react-native';
 import { WebView } from 'react-native-webview';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '@/navigators/RootNavigator';
 import { useTheme } from '@/context/ThemeContext';
 import BackIcon from '@/icons/BackIcon';
 import BookmarkIcon from '@/icons/BookmarkIcon';
+import { useWindowDimensions } from 'react-native-windows';
 
 const SingleNote = ({ route, navigation }: { route: RouteProp<RootStackParamList, "SingleNote">; navigation: any }) => {
   const { content, title } = route.params;
   const { colors } = useTheme();
-  const [webViewHeight, setWebViewHeight] = useState(100);
-  const { width } = useWindowDimensions();
+  const {width, height} = useWindowDimensions();
 
   const htmlWrapper = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-          <style>
-            body { font-family: sans-serif; padding: 16px; background: #fff; color: #111; margin: 0; }
-            .ql-editor { font-size: 18px; }
-          </style>
-        </head>
-        <body>
-          <div class="ql-editor">
-            ${content}
-          </div>
-          <script>
-            setTimeout(() => {
-              const height = document.body.scrollHeight;
-              window.ReactNativeWebView.postMessage(height.toString());
-            }, 100);
-          </script>
-        </body>
-      </html>
-    `;
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+      <style>
+        body {
+          font-family: sans-serif;
+          padding: 0;
+          margin: 0;
+          background: #fff;
+          color: #111;
+        }
+        .ql-container {
+          box-sizing: border-box;
+          font-size: 18px;
+          height: auto;
+          min-height: 100%;
+        }
+        .ql-editor {
+          padding: 16px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="ql-container ql-snow">
+        <div class="ql-editor">
+          ${content}
+        </div>
+      </div>
+
+      <script>
+        setTimeout(() => {
+          const height = document.body.scrollHeight;
+          window.ReactNativeWebView.postMessage(height.toString());
+        }, 100);
+      </script>
+    </body>
+  </html>
+`;
+
 
   const handleMessage = (event: any) => {
-    const height = Number(event.nativeEvent.data);
-    if (!isNaN(height)) {
-      setWebViewHeight(height);
-    }
+    // const height = Number(event.nativeEvent.data);
+    // if (!isNaN(height)) {
+    //   setWebViewHeight(height);
+    // }
   };
 
   return (
@@ -72,7 +90,7 @@ const SingleNote = ({ route, navigation }: { route: RouteProp<RootStackParamList
           <WebView
             originWhitelist={['*']}
             source={{ html: htmlWrapper }}
-            style={{ height: webViewHeight, width }}
+            style={{ height: height - 140 }}
             onMessage={handleMessage}
             javaScriptEnabled
             scrollEnabled={false}

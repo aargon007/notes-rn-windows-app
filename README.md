@@ -2,7 +2,7 @@
 
 A sleek, feature-rich React Native Notes application powered by SQLite, WebView, and a Quill-style rich text editor. Built with performance and cross-platform compatibility in mind, including support for Android, iOS, and Windows.
 
-![Demo](./Demo.mp4)
+🎬 [Watch Demo Video](./Demo.mp4)
 
 ---
 
@@ -15,12 +15,6 @@ A sleek, feature-rich React Native Notes application powered by SQLite, WebView,
 - 🎨 Custom theming support with `ThemeContext`
 - 🧭 Smooth Navigation using `@react-navigation`
 - 🪟 Windows UWP Support via `react-native-windows`
-
----
-
-## 📸 Preview
-
-https://user-images.githubusercontent.com/your-username/demo.mp4 *(YouTube or GitHub-hosted preview also works here)*
 
 ---
 

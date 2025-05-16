@@ -24,6 +24,7 @@ const NoteCard = ({ item, isWideScreen, colors }: { item: TNote; isWideScreen?: 
         <TouchableOpacity
             style={[styles.noteItem, { backgroundColor: colors.card }, isWideScreen && styles.noteItemWide]}
             onPress={() => navigate("SingleNote", item)}
+            activeOpacity={0.5}
         >
             <View style={styles.noteContent}>
                 <Text style={[styles.noteTitle, { color: colors.text }]} numberOfLines={1}>

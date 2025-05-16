@@ -1,26 +1,40 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import type { StackNavigation } from '@/navigators/RootNavigator';
+import { useNavigation } from '@react-navigation/native';
 import type { TNote } from '@/types/note';
 import BookmarkIcon from '@/icons/BookmarkIcon';
 
 const NoteCard = ({ item, isWideScreen, colors }: { item: TNote; isWideScreen?: boolean; colors: any }) => {
+    const { navigate } = useNavigation<StackNavigation>();
     const formattedDate = item?.updated_at;
+
+    const stripHtml = (html: string) => {
+        if (!html) return '';
+        return html
+            .replace(/<[^>]*>?/gm, '') // Remove tags
+            .replace(/&nbsp;/g, ' ')   // Replace common entities
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .trim();
+    };
 
     return (
         <TouchableOpacity
             style={[styles.noteItem, { backgroundColor: colors.card }, isWideScreen && styles.noteItemWide]}
-        // onPress={() => navigation.navigate("note", { noteId: item.id })}
+            onPress={() => navigate("SingleNote", item)}
         >
             <View style={styles.noteContent}>
                 <Text style={[styles.noteTitle, { color: colors.text }]} numberOfLines={1}>
                     {item?.title || "Untitled Note"}
                 </Text>
                 <Text style={[styles.notePreview, { color: colors.secondaryText }]} numberOfLines={2}>
-                    {item?.content}
+                    {stripHtml(item?.content)}
                 </Text>
                 <View style={styles.noteFooter}>
                     <Text style={[styles.noteDate, { color: colors.tertiaryText }]}>{formattedDate}</Text>
-                    {item.is_favorite ? <BookmarkIcon/> : null}
+                    {item.is_favorite ? <BookmarkIcon /> : null}
                 </View>
             </View>
         </TouchableOpacity>

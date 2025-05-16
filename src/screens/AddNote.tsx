@@ -1,41 +1,60 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef } from "react"
 import { View, TextInput, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, useWindowDimensions, Text, SafeAreaView, } from "react-native"
-import { type RootStackParamList, type StackNavigation } from "@/navigators/RootNavigator"
-import { type RouteProp } from "@react-navigation/native"
+import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { type StackNavigation } from "@/navigators/RootNavigator"
 import { useDatabase } from "../context/DatabaseContext"
 import { useTheme } from "../context/ThemeContext"
+import htmlContent from "@/utils/htmlContent";
 import BackIcon from "@/icons/BackIcon"
 
-const AddNote = ({ navigation, route }: { navigation: StackNavigation, route: RouteProp<RootStackParamList, "AddNote"> }) => {
+const AddNote = ({ navigation }: { navigation: StackNavigation }) => {
     const [title, setTitle] = useState("")
-    const [content, setContent] = useState("")
-    const [isFavorite, setIsFavorite] = useState(false)
+    const [editorContent, setEditorContent] = useState('');
+    const [pendingSave, setPendingSave] = useState(false);
+    const webviewRef = useRef<WebView>(null);
+
     const { db } = useDatabase()
     const { colors } = useTheme()
-    const contentInputRef = useRef(null)
     const dimensions = useWindowDimensions()
 
     // Responsive layout for Windows
     const isWideScreen = dimensions.width > 800
 
-    const saveNote = () => {
-        const now = new Date().toISOString();
+    const getContent = () => {
+        webviewRef.current?.injectJavaScript(`
+          if (window.getContent) window.getContent();
+          true;
+        `);
+    };
 
-        // Create new note
-        db!.transaction((tx: any) => {
-            tx.executeSql(
-                "INSERT INTO notes (title, content, is_favorite, created_at, updated_at) VALUES (?, ?, ?, ?, ?);",
-                [title, content, isFavorite ? 1 : 0, now, now],
-                () => {
-                    navigation.goBack();
-                    Alert.alert("Note Saved", "Your note has been saved successfully.", [{ text: "OK" }]);
-                },
-                (error: any) => {
-                    console.error("Error creating note:", error)
-                    return false
-                },
-            )
-        })
+    const onMessage = (event: WebViewMessageEvent) => {
+        const html = event.nativeEvent.data; // 🔐 Capture immediately
+        setEditorContent(html);
+
+        // If we are waiting to save, do it now
+        if (pendingSave) {
+            const now = new Date().toISOString();
+            db!.transaction((tx: any) => {
+                tx.executeSql(
+                    "INSERT INTO notes (title, content, is_favorite, created_at, updated_at) VALUES (?, ?, ?, ?, ?);",
+                    [title, html, 0, now, now],
+                    () => {
+                        navigation.goBack();
+                        // Alert.alert("Note Saved", "Your note has been saved successfully.", [{ text: "OK" }]);
+                    },
+                    (error: any) => {
+                        console.error("Error creating note:", error)
+                        return false
+                    },
+                )
+            });
+            setPendingSave(false);
+        }
+    };
+
+    const saveNote = () => {
+        setPendingSave(true);
+        getContent();
     };
 
     return (
@@ -56,7 +75,7 @@ const AddNote = ({ navigation, route }: { navigation: StackNavigation, route: Ro
                     </Text>
                 </TouchableOpacity>
 
-                <Text style= {{ color: colors.text }}>New Note</Text>
+                <Text style={{ color: colors.text }}>New Note</Text>
 
                 <TouchableOpacity
                     style={[styles.headerButton, {
@@ -88,15 +107,13 @@ const AddNote = ({ navigation, route }: { navigation: StackNavigation, route: Ro
                             multiline
                             returnKeyType="next"
                         />
-                        <TextInput
-                            ref={contentInputRef}
-                            style={[styles.contentInput, { color: colors.text }, isWideScreen && styles.wideContentInput]}
-                            placeholder="Start typing..."
-                            placeholderTextColor={colors.secondaryText}
-                            value={content}
-                            onChangeText={setContent}
-                            multiline
-                            textAlignVertical="top"
+                        <WebView
+                            ref={webviewRef}
+                            originWhitelist={['*']}
+                            source={{ html: htmlContent }}
+                            onMessage={onMessage}
+                            javaScriptEnabled={true}
+                            style={styles.richEditor}
                         />
                     </View>
                 </ScrollView>
@@ -126,6 +143,13 @@ const styles = StyleSheet.create({
     wideNoteContainer: {
         width: "80%",
         maxWidth: 800,
+    },
+    richEditor: {
+        minHeight: 300,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        padding: 10,
     },
     titleInput: {
         fontSize: 24,
@@ -168,3 +192,24 @@ const styles = StyleSheet.create({
 })
 
 export default AddNote
+
+
+//     < RichToolbar
+// editor = { richTextRef }
+// actions = {
+//     [
+//     actions.undo,
+//     actions.redo,
+//     actions.setBold,
+//     actions.setItalic,
+//     actions.setUnderline,
+//     actions.setStrikethrough,
+//     actions.insertImage,
+//     actions.alignLeft,
+//     actions.alignCenter,
+//     actions.alignRight,
+//     actions.blockquote,
+//     actions.insertBulletsList,
+//     actions.insertOrderedList
+//     ]}
+//     /> 
